@@ -1,36 +1,39 @@
+import _ from 'underscore';
+import { getObject, getArray } from './../util';
+
 export default function reportSessionMetrics(Meteor, registry) {
-  const { sessions } = Meteor.default_server;
+  const sessionsObject = getObject(Meteor.default_server.sessions);
   const subsCount = {};
   const docsCount = {};
 
-  const sessionsValues = Array.from(sessions.values());
+  _.each(sessionsObject, session => {
+    const namedSubs = getObject(session._namedSubs);
 
-  sessionsValues.forEach(session => {
-    const namedSubs = Array.from(session._namedSubs.values());
-    namedSubs.forEach(sub => {
+    _.each(namedSubs, sub => {
       subsCount[sub._name] = subsCount[sub._name] ? subsCount[sub._name] + 1 : 1;
+      const subDocs = getObject(sub._documents);
 
-      const subDocs = Array.from(sub._documents.entries());
-      subDocs.forEach(([key, docsSet]) => {
+      _.each(subDocs, ([key, docsSet]) => {
+        const docsArray = getArray(docsSet);
         if (!docsCount[key]) {
           docsCount[key] = 0;
         }
-        docsCount[key] += docsSet.size;
+        docsCount[key] += docsArray.length;
       });
     });
   });
 
-  Object.keys(docsCount).forEach(key => {
+  _.keys(docsCount).forEach(key => {
     const docsValue = docsCount[key];
     registry.getOrCreateSettableGauge(`pubsub.docs.${key}`).setValue(docsValue || 0);
   });
 
   const publications = Meteor.server.publish_handlers;
-  Object.keys(publications).forEach(publicationName => {
+  _.keys(publications).forEach(publicationName => {
     registry
       .getOrCreateSettableGauge(`pubsub.${publicationName}`)
       .setValue(subsCount[publicationName] || 0);
   });
 
-  return sessions.size;
+  return _.keys(sessionsObject).length;
 }

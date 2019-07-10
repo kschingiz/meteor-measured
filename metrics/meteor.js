@@ -1,14 +1,33 @@
-import { Gauge } from 'measured-core';
 import reportSessionMetrics from './reportSessionMetrics';
 import reportSocketMetrics from './reportSocketMetrics';
 import reportObserversMetrics from './reportObserversMetrics';
 
-const meteorMetrics = {
-  'sessions.count': (Meteor, registry) => new Gauge(() => reportSessionMetrics(Meteor, registry)),
-  'sockets.open': (Meteor, registry) => new Gauge(() => reportSocketMetrics(Meteor, registry)),
-  'observers.handles': (Meteor, registry) =>
-    new Gauge(() => reportObserversMetrics(MongoInternals, registry))
-};
+export function createSessionMetrics(Meteor, registry, dimensions, reportingIntervalInSeconds) {
+  registry.getOrCreateGauge(
+    'sessions.count',
+    () => reportSessionMetrics(Meteor, registry),
+    dimensions,
+    reportingIntervalInSeconds
+  );
+}
+
+export function createSocketMetrics(Meteor, registry, dimensions, reportingIntervalInSeconds) {
+  registry.getOrCreateGauge(
+    'sockets.count',
+    () => reportSocketMetrics(Meteor, registry),
+    dimensions,
+    reportingIntervalInSeconds
+  );
+}
+
+export function createObserverMetrics(Meteor, registry, dimensions, reportingIntervalInSeconds) {
+  registry.getOrCreateGauge(
+    'observers.handles',
+    () => reportObserversMetrics(MongoInternals, registry),
+    dimensions,
+    reportingIntervalInSeconds
+  );
+}
 
 export default function createMeteorMetrics(
   Meteor,
@@ -18,12 +37,7 @@ export default function createMeteorMetrics(
 ) {
   customDimensions = customDimensions || {};
 
-  Object.keys(meteorMetrics).forEach(metricName => {
-    metricsRegistry.register(
-      metricName,
-      meteorMetrics[metricName](Meteor, metricsRegistry),
-      customDimensions,
-      reportingIntervalInSeconds
-    );
-  });
+  createSessionMetrics(Meteor, metricsRegistry, customDimensions, reportingIntervalInSeconds);
+  createSocketMetrics(Meteor, metricsRegistry, customDimensions, reportingIntervalInSeconds);
+  createObserverMetrics(Meteor, metricsRegistry, customDimensions, reportingIntervalInSeconds);
 }
