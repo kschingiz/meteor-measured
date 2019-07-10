@@ -1,6 +1,6 @@
 {
   "name": "meteor-measured",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Meteor metrics library",
   "main": "meteor-measured.js",
   "scripts": {
