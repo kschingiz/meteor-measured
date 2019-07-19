@@ -1,6 +1,6 @@
 Package.describe({
   name: 'kschingiz:meteor-measured',
-  version: '1.0.2',
+  version: '1.0.3',
   summary: 'Meteor metrics library',
   git: 'https://github.com/kschingiz/meteor-measured',
   documentation: 'README.md'
