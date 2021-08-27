@@ -1,7 +1,7 @@
 import { getObject, getArray } from './../util';
 
 export default function reportSessionMetrics(Meteor, registry) {
-  const sessionsObject = getObject(Meteor.default_server.sessions);
+  const sessionsObject = getObject(Meteor.server.sessions);
   const subsCount = {};
   const docsCount = {};
 
